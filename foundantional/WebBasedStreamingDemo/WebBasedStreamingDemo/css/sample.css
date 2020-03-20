@@ -1,0 +1,81 @@
+﻿.pretty-print {
+	font-size: 12px;
+}
+
+.pretty-print .json-key {
+	color: #e46262;
+}
+
+.pretty-print .json-value {
+	color: #6984c2;
+	word-break: break-all;
+}
+
+.pretty-print .json-string {
+	color: #4eb74e;
+}
+
+#streaming-log .panel-body samp {
+	display: block;
+}
+
+#data-display samp {
+	display: block;
+}
+
+.panel-heading {
+	position: relative;
+}
+
+#messages pre code {
+	display: block;
+	white-space: normal;
+}
+
+#current-context-id {
+	position: absolute;
+	top: 10px;
+	right: 40px;
+	height: 24px;
+	line-height: 24px;
+	display: block;
+}
+
+.sample-state {
+	position: absolute;
+	right: 15px;
+	top: 10px;
+	display: block;
+	border-radius: 50%;
+	height: 20px;
+	width: 20px;
+	box-shadow: inset 0 -1px 9px 3px rgba(0,0,0,.2), inset 0 -1px 9px 2px rgba(0,0,0,.2), inset 0 -1px 9px 1px rgba(0,0,0,.2);
+}
+
+	.sample-state.disconnected {
+		background: #f00;
+	}
+
+	.sample-state.reconnecting,
+	.sample-state.connecting {
+		background: #ff0;
+	}
+
+	.sample-state.reconnected,
+	.sample-state.connected {
+		background: #0f0;
+	}
+
+	.sample-state.slow {
+		background: #f90 !important;
+	}
+
+
+#reference-id-and-messages {
+	position: absolute;
+	top: 10px;
+	right: 40px;
+	display: block;
+	height: 20px;
+	line-height: 20px;
+}

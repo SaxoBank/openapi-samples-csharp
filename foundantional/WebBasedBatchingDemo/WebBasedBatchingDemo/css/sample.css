@@ -1,0 +1,12 @@
+﻿.pretty-print .json-key {
+	color: #e46262;
+}
+
+.pretty-print .json-value {
+	color: #6984c2;
+	word-break: break-all;
+}
+
+.pretty-print .json-string {
+	color: #4eb74e;
+}

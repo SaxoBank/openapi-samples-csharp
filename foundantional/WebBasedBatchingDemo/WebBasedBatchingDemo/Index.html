@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="css/sample.css" />
+	<title>Welcome to OpenAPI - Batching</title>
+</head>
+<body>
+	<nav class="navbar navbar-inverse">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="https://developer.saxobank.com/sim/openapi/portal/" target="_blank">OpenAPI</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="javascript:false">Batching example</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<div id="parsed-response" class="panel panel-primary hidden">
+			<a name="batch-response"></a>
+			<div class="panel-heading">Parsed Response:</div>
+			<div class="panel-body">
+				<pre><code class="pretty-print"></code></pre>
+			</div>
+		</div>
+
+		<form id="batch-response" class="panel panel-primary hidden">
+			<a name="batch-response"></a>
+			<div class="panel-heading">Batch Response:</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<pre><code></code></pre>
+				</div>
+				<button class="btn btn-primary">Parse Batch Response</button>
+			</div>
+		</form>
+
+		<form id="send-batch-requst" class="panel panel-primary hidden">
+			<a name="batch-request"></a>
+			<div class="panel-heading">Batch Request:</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<pre><code></code></pre>
+				</div>
+				<button class="btn btn-primary">Send Batch Request</button>
+			</div>
+		</form>
+
+
+		<form id="create-batch-form" class="panel panel-primary">
+			<div class="panel-heading">Create Batch Request</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label for="endpoint1" class="control-label">Endpoint 1</label>
+					<input name="endpoints" id="endpoint1" class="form-control" value="port/v1/accounts/me" readonly/>
+				</div>
+				<div class="form-group">
+					<label for="endpoint2" class="control-label">Endpoint 2</label>
+					<input name="endpoints" id="endpoint2" class="form-control" value="port/v1/balances/me" readonly />
+				</div>
+				<div class="form-group">
+					<label for="token" class="control-label">Authorization token - get it from the dev portal</label>
+					<input name="token" id="token" class="form-control" placeholder="Paste authorization token here" />
+				</div>
+				<div class="alert alert-danger hidden" role="alert" id="token-alert">
+					You forgot the authorization token.
+					Please go to the <a href="https://developer.saxobank.com/sim/openapi/portal/" class="alert-link">Dev Portal</a> and get one.
+				</div>
+				<button class="btn btn-primary">Create Batch Request</button>
+			</div>
+		</form>
+	</div>
+	<script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/openapi-batch.js"></script>
+	<script type="text/javascript" src="js/sample-logic.js"></script>
+	<script type="text/javascript" src="js/sample-ui.js"></script>
+</body>
+</html>

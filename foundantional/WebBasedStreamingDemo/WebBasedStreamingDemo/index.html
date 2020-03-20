@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="css/sample.css" />
+	<title>Streaming Sample | OpenAPI</title>
+</head>
+<body>
+	<nav class="navbar navbar-inverse">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="https://developer.saxobank.com/sim/openapi/portal/" target="_blank">OpenAPI</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="index.html">Streaming Sample</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container">
+		<form class="panel panel-primary" id="connect-form">
+			<div class="panel-heading">
+				Connectivity (streaming/connection)
+				<span id="current-context-id"></span>
+				<span id="connection-state" class="sample-state disconnected" title="disconnected"></span>
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label for="token" class="control-label">Authorization token - get it from the dev portal</label>
+					<input name="token" id="token" class="form-control" placeholder="Paste authorization token here" />
+				</div>
+				<div class="alert alert-danger hidden" role="alert" id="token-alert">
+					You forgot the authorization token.
+					Please go to the <a href="https://developer.saxobank.com/sim/openapi/portal/" class="alert-link">Dev Portal</a> and get one.
+				</div>
+				<button class="btn btn-primary" type="submit" id="streaming-server-btn">Connect</button>
+			</div>
+		</form>
+		<div class="panel panel-primary hidden" id="subscription">
+			<div class="panel-heading">
+				Subscription
+				<span id="reference-id-and-messages"></span>
+				<span id="subscription-state" class="sample-state disconnected" title="inactive"></span>
+			</div>
+			<form class="panel-body" id="subscribe-form">
+				<div class="form-group">
+					<button class="btn btn-primary" type="submit">Subscribe</button>
+				</div>
+				<div class="form-group">
+					<label class="control-label">Endpoint</label>
+					<input name="endpoint" class="form-control" value="trade/v1/infoprices/subscriptions" readonly />
+				</div>
+				<div class="form-group">
+					<label class="control-label">Arguments</label>
+					<textarea name="arguments" class="form-control" rows="5">
+						{
+						"Uics": "2,4",
+						"AssetType": "FxSpot",
+						"FieldGroups": ["MarketDepth","Quote"]
+						}
+					</textarea>
+				</div>
+			</form>
+			<form class="panel-body hidden" id="unsubscribe-form">
+				<div class="form-group">
+					<button class="btn btn-primary" type="submit">Unsubscribe</button>
+				</div>
+				<div style="width: 100%; display: table;">
+					<div style="display: table-row">
+						<div class="form-group" style="width: 400px; display: table-cell;">
+							<label class="control-label">Snapshot (auto updated with message data)</label>
+							<pre><code id="snapshot" class="pretty-print"></code></pre>
+						</div>
+						<div class="form-group" style="display: table-cell;">
+							<label class="control-label">Messages (latest message is displayed first))</label>
+							<div id="messages"><pre></pre></div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+	</div>
+	<script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="js/jquery.signalR-2.2.0.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/openapi-stream.js"></script>
+	<script type="text/javascript" src="js/openapi-subscription.js"></script>
+	<script type="text/javascript" src="js/sample-logic.js"></script>
+	<script type="text/javascript" src="js/sample-ui.js"></script>
+</body>
+</html>
