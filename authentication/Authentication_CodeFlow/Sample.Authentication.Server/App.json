@@ -1,0 +1,12 @@
+﻿{
+  "AppName": "",
+  "AppKey": "",
+  "AuthorizationEndpoint": "https://sim.logonvalidation.net/authorize",
+  "TokenEndpoint": "https://sim.logonvalidation.net/token",
+  "GrantType": "Code",
+  "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi/",
+  "RedirectUrls": [
+    ""
+  ],
+  "AppSecret": ""
+}

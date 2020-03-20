@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Sample.Authentication.Server</name>
+    </assembly>
+    <members>
+        <member name="M:Sample.Authentication.Server.Controllers.StartupController.Get">
+            <summary>
+            Redirect to the login page SAXO
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Controllers.StartupController.Autorization(System.String,System.String)">
+            <summary>
+            Callback by SAXO - Get access token by authentication code
+            </summary>
+            <param name="code">authentication code</param>
+            <param name="state">state</param>
+            <returns>Token</returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Controllers.StartupController.RefreshToken(System.String)">
+            <summary>
+            Refresh Token
+            </summary>
+            <param name="refreshToken">refresh token</param>
+            <returns>Token</returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Controllers.StartupController.GetApp">
+            <summary>
+            Read App from configuration file
+            </summary>
+            <returns>App</returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Services.AuthService.GetAuthenticationRequest(OpenAPI.Models.App)">
+            <summary>
+            Create the login page url
+            </summary>
+            <param name="app"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Services.AuthService.GetToken(OpenAPI.Models.App,System.String)">
+            <summary>
+            Get access token by authentication code
+            </summary>
+            <param name="app"></param>
+            <param name="authCode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Services.AuthService.RefreshToken(OpenAPI.Models.App,System.String)">
+            <summary>
+            Refresh token before expiration
+            </summary>
+            <param name="app"></param>
+            <param name="refreshToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Services.AuthService.GetBasicAuthHeader(System.String,System.String)">
+            <summary>
+            Encoding as the Basic method
+            </summary>
+            <param name="clientId"></param>
+            <param name="secret"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Services.AuthService.Send(System.Net.Http.HttpRequestMessage)">
+            <summary>
+            Send out token request
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sample.Authentication.Server.Startup.SetJsonFormat(Microsoft.AspNetCore.Mvc.MvcJsonOptions)">
+            <summary>
+            Define Json Format
+            </summary>
+            <param name="option"></param>
+        </member>
+    </members>
+</doc>
