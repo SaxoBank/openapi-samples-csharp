@@ -5,9 +5,9 @@ This repository contains sample files demonstrating basic OpenAPI interactions u
 ## Table of Contents
 
 1. Authentication
-  - [OAuth2 Code Flow example](authentication/authentication_CodeFlow)
-  - [OAuth2 Certificate Based Auth example](authentication/authentication_Cba)
-  - [OAuth2 PKCE Flow example](authentication/authentication_PKCE)
+  - [OAuth2 Code Flow example](authentication/Authentication_CodeFlow)
+  - [OAuth2 Certificate Based Auth example](authentication/Authentication_Cba)
+  - [OAuth2 PKCE Flow example](authentication/Authentication_PKCE)
 
 2. Streaming
   - [WebSockets example](websockets)
