@@ -14,10 +14,10 @@ namespace Streaming.WebSocket.Samples
 		{
 			Console.WriteLine("Press ESC to disconnect.");
 
-			var taskKeys = new Task(ListenForEscape);
+			Task taskKeys = new Task(ListenForEscape);
 
-			var cts = new CancellationTokenSource();
-			var taskRunSample = new Task(async () => { await RunSample(cts); });
+			CancellationTokenSource cts = new CancellationTokenSource();
+			Task taskRunSample = new Task(async () => { await RunSample(cts); });
 
 			taskKeys.Start();
 			try
@@ -38,12 +38,12 @@ namespace Streaming.WebSocket.Samples
 		}
 
 		/// <summary>
-		/// Run the sample and set up a callback to handle Web Socket clonse on ESC.
+		/// Run the sample and set up a callback to handle Web Socket close on ESC.
 		/// </summary>
 		/// <param name="cts"></param>
 		private static async Task RunSample(CancellationTokenSource cts)
 		{
-			var sample = new WebSocketSample();
+			WebSocketSample sample = new WebSocketSample();
 			async void CloseConnectionCallback() => await sample.StopWebSocket();
 			_closeConnectionAction = CloseConnectionCallback;
 
