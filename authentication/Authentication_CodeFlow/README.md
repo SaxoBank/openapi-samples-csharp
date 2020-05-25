@@ -1,7 +1,7 @@
 # OAuth 2 Code Flow Sample
 This sample demonstrates how to implement the OAuth 2 Code Flow.
 
-A description of this flow is provided here: [OAuth2 Code Flow example](https://www.developer.saxobank.com/openapi/learn/oauth-authorization-code-grant).
+A description of this flow is provided here: [OAuth2 Code Flow example](https://developer.saxobank.com/openapi/learn/oauth-authorization-code-grant).
 
 The sample application is a simple .NET Core service. It runs on https://localhost:44315 and it expects to receive the OAuth callback at https://localhost:44315/startup/authorization.
 
