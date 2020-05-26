@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 
 namespace Sample.Authentication.Cba.Services
 {
@@ -19,8 +17,7 @@ namespace Sample.Authentication.Cba.Services
         {
             return new AuthenticationHeaderValue(tokenType, accessToken);
         }
-
-
+        
         /// <summary>
         /// Send out token request
         /// </summary>
@@ -32,9 +29,9 @@ namespace Sample.Authentication.Cba.Services
 
             try
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false }))
+                using (HttpClient httpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false }))
                 {
-                    var res = httpClient.SendAsync(request).Result;
+                    HttpResponseMessage res = httpClient.SendAsync(request).Result;
                     content = res.Content.ReadAsStringAsync().Result;
                     res.EnsureSuccessStatusCode();
 

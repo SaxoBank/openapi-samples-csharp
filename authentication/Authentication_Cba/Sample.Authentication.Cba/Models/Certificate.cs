@@ -1,11 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json;
 
-namespace Sample.Authentication.Cba
+namespace Sample.Authentication.Cba.Models
 {
     public class Certificate
     {
@@ -18,10 +14,10 @@ namespace Sample.Authentication.Cba
         {
             get
             {
-                var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                 store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
 
-                var results = store.Certificates.Find(X509FindType.FindBySerialNumber, ClientCertSerialNumber, false);
+                X509Certificate2Collection results = store.Certificates.Find(X509FindType.FindBySerialNumber, ClientCertSerialNumber, false);
                 return results.Count > 0 ? results[0] : null;
             }
         }

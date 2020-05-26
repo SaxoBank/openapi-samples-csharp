@@ -2,31 +2,31 @@
 using Sample.Authentication.Cba.Services;
 using System;
 using System.IO;
+using Sample.Authentication.Cba.Models;
 
 namespace Sample.Authentication.Cba
 {
     class Program
     {
-        static readonly CbaAuthService _authService = new CbaAuthService();
+        static readonly CbaAuthService AuthService = new CbaAuthService();
 
-        static void Main(string[] args)
+        static void Main()
         {
             try
             {
-                var app = GetApp();
-                var certificate = GetCertificate();
+                App app = GetApp();
+                Certificate certificate = GetCertificate();
 
                 Console.WriteLine("Getting Token by Certificate... ");
-                var token = GetToken(app, certificate);
-                var client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                Token token = GetToken(app, certificate);
+                dynamic client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
                 Console.WriteLine("Token: ");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = token, Client = client }, Formatting.Indented));
                 Console.WriteLine("================================ ");
 
-
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Refreshing Token... ");
-                var newToken = RefreshToken(token.RefreshToken);
+                Token newToken = RefreshToken(token.RefreshToken);
                 client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
                 Console.WriteLine("New Token: ");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = newToken, Client = client }, Formatting.Indented));
@@ -41,21 +41,17 @@ namespace Sample.Authentication.Cba
                 Console.Read();
             }
         }
-
-
+        
         /// <summary>
         /// Certificate base Auth and return token + client
         /// </summary>
         /// <returns></returns>
         static Token GetToken(App app, Certificate certificate)
         {
-            var token = _authService.GetTokenByOAuthCba(app, certificate);
-
+            Token token = AuthService.GetTokenByOAuthCba(app, certificate);
             return token;
         }
-
-
-
+        
         /// <summary>
         /// Refresh Token
         /// </summary>
@@ -66,25 +62,25 @@ namespace Sample.Authentication.Cba
             if (string.IsNullOrEmpty(refreshToken))
                 throw new ArgumentException("Invalid refresh token");
 
-            var app = GetApp();
+            App app = GetApp();
 
-            var token = _authService.RefreshToken(app, refreshToken);
+            Token token = AuthService.RefreshToken(app, refreshToken);
 
             return token;
         }
 
         static App GetApp()
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "App.json");
-            var content = System.IO.File.ReadAllText(path);
+            string path = Path.Combine(AppContext.BaseDirectory, "App.json");
+            string content = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<App>(content);
         }
 
 
         static Certificate GetCertificate()
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "Certificate.json");
-            var content = System.IO.File.ReadAllText(path);
+            string path = Path.Combine(AppContext.BaseDirectory, "Certificate.json");
+            string content = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<Certificate>(content);
         }
     }
