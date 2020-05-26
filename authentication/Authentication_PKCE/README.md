@@ -34,7 +34,7 @@ You will be prompted to log in.
 ![Login dialog](./Login.png)
 
 You may initially be shown a disclaimer.
-![Disclaimer dialog](./Disclaimer.png)
+![Disclaimer dialog](./disclaimer.png)
 
 Authorization is now complete, and the browser is kept open, showing an information for the user to manually close it.
 ![Browser](./AuthCodeReceived.png).
