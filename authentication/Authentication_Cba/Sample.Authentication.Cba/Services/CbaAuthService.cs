@@ -1,43 +1,35 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Sample.Authentication.Cba.Services;
+using Sample.Authentication.Cba.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Sample.Authentication.Cba
+namespace Sample.Authentication.Cba.Services
 {
     public class CbaAuthService : BaseService
     {
-        public const string JwtOAuthPersonalCertificate = "urn:saxobank:oauth:grant-type:personal-jwt";
-
         /// <summary>
         /// Get token by presenting a properly signed JWT
+        /// where the user can be any user within a hierarchy under the owner of the certificate
         /// </summary>
-        /// <param name="configuration">General OpenAPI configuration data.</param>
-        /// <param name="userId">Id of the user for which a token should be generated.</param>
-        /// where the user can be any user within a hierarchy under the owner of the certificate</param>
         /// <returns></returns>
         public Token GetTokenByOAuthCba(App app, Certificate certificate)
         {
             if (certificate.ClientCertificate == null)
                 throw new InvalidOperationException($"Invalid Certificate {certificate.ClientCertSerialNumber}");
 
-            var grant_type = JwtOAuthPersonalCertificate;
-            var assertion = CreateAssertion(app, certificate);
-            var request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
+            string assertion = CreateAssertion(app, certificate);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
             request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
             request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "assertion", assertion },
-                { "grant_type", grant_type }
+                { "grant_type", "urn:saxobank:oauth:grant-type:personal-jwt" }
             });
 
             try
@@ -46,10 +38,9 @@ namespace Sample.Authentication.Cba
             }
             catch (Exception ex)
             {
-                throw new HttpRequestException($"Error requesting access token using: {ex.Message}", ex);
+                throw new HttpRequestException($"Error requesting access token: {ex.Message}", ex);
             }
         }
-
 
         /// <summary>
         /// Refresh token before expiration
@@ -59,12 +50,17 @@ namespace Sample.Authentication.Cba
         /// <returns></returns>
         public Token RefreshToken(App app, string refreshToken)
         {
-            var authenticationUrl = app.TokenEndpoint;
-            var appKey = app.AppKey;
-            var secret = app.AppSecret;
-
-            var request = new HttpRequestMessage(HttpMethod.Post, authenticationUrl);
-            request.Headers.Authorization = GetBasicAuthHeader(appKey, secret);
+            // Should you refresh the token, or just generate a new one?
+            // Well, if you generate a new token, you create a new session and the streaming session must be recreated.
+            // And if you refresh the token, the session is extended, keeping up the streaming session.
+            // So it is recommended to refresh the token.
+            //
+            // If you run into a 401 NotAuthenticated, this might be caused by not accepting the terms and conditions.
+            // To fix this, you must use this app once with the Authorization Code Flow for your userId and accept the Disclaimer after signing in.
+            // You can use this URL, replacing the appKey with yours (add a new redirect URL http://127.0.0.1/):
+            // https://sim.logonvalidation.net/authorize?client_id=1234b8587cd146249e13dc4ab2f9f806&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%2F
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
+            request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
             request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "refresh_token", refreshToken },
@@ -77,20 +73,19 @@ namespace Sample.Authentication.Cba
             }
             catch (Exception ex)
             {
-                throw new HttpRequestException("Error requesting access token using refresh token" + refreshToken, ex);
+                throw new HttpRequestException($"Error requesting access token using refresh token: {refreshToken}\n{ex.Message}", ex);
             }
         }
-
-
+        
         /// <summary>
         /// Encoding as the Basic method
         /// </summary>
         /// <param name="clientId"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
-        private AuthenticationHeaderValue GetBasicAuthHeader(string clientId, string secret)
+        private static AuthenticationHeaderValue GetBasicAuthHeader(string clientId, string secret)
         {
-            var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{secret}"));
+            string encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{secret}"));
             return new AuthenticationHeaderValue("Basic", encoded);
         }
 
@@ -98,31 +93,31 @@ namespace Sample.Authentication.Cba
         /// Create JWT
         /// Refer to https://www.developer.saxo/openapi/learn/oauth-certificate-based-authentication
         /// </summary>
-        /// <param name="spUrl"></param>
-        /// <param name="userId"></param>
-        /// <param name="appKey"></param>
-        /// <param name="idpUrl"></param>
-        /// <param name="signCert"></param>
         /// <returns></returns>
-        private string CreateAssertion(App app, Certificate certificate)
+        private static string CreateAssertion(App app, Certificate certificate)
         {
-            var issuer = app.AppKey;
-            var audience = app.AuthorizationEndpoint;
-            var appUrl = app.ServiceProviderUrl;
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim("spurl", app.ServiceProviderUrl),
+                new Claim("sub", certificate.UserId),  // The user who has created the certificate (in Chrome)
+                new Claim("iss", app.AppKey),
+                new Claim("aud", app.TokenEndpoint),
+                // Lifetime of assertion - keep this short, the token is generated directly afterwards:
+                new Claim("exp", (DateTime.UtcNow.AddMinutes(1) - new DateTime(1970, 1, 1)).TotalSeconds.ToString(CultureInfo.InvariantCulture))
+            };
 
-            var claims = new List<Claim>();
-            claims.Add(new Claim("spurl", appUrl));
-            claims.Add(new Claim("sub", certificate.UserId));
-            claims.Add(new Claim("iss", issuer));
-            claims.Add(new Claim("aud", audience));
-            claims.Add(new Claim("exp", (DateTime.UtcNow.AddHours(5) - new DateTime(1970, 1, 1)).TotalSeconds.ToString()));
+            X509SecurityKey key = new X509SecurityKey(certificate.ClientCertificate);
+            JwtHeader header = new JwtHeader(new SigningCredentials(key, SecurityAlgorithms.RsaSha256))
+            {
+                {"x5t", certificate.ClientCertificate.Thumbprint}
+            };
 
-            var key = new X509SecurityKey(certificate.ClientCertificate);
-            var header = new JwtHeader(new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
-            header.Add("x5t", certificate.ClientCertificate.Thumbprint);
-
-            var jsonWebToken = new JwtSecurityToken(header, new JwtPayload(issuer, audience, claims, null, null));
-            return new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
+            JwtSecurityToken jsonWebToken = new JwtSecurityToken(header, new JwtPayload(app.AppKey, app.TokenEndpoint, claims, null, null));
+            // Retrieve a "Keyset does not exist" exception here? Make sure the operating Windows-user has access to this certificate (on Local Machine)!
+            // Check this in the certificate manager with "All Tasks" / "Manage Private Keys" and give your user Full control.
+            string assertion = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
+            Console.WriteLine("Generated assertion: " + assertion);  // You van verify this token on https://jwt.io/
+            return assertion;
         }
 
     }

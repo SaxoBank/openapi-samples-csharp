@@ -1,17 +1,11 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using Newtonsoft.Json;
 
-namespace Sample.Authentication.Cba
+namespace Sample.Authentication.Cba.Models
 {
     public class Token
     {
-        public DateTime IssueTime
-        {
-            get { return DateTime.UtcNow; }
-        }
+        public DateTime IssueTime => DateTime.UtcNow;
 
         [JsonProperty("access_token")]
         public string AccessToken { get; set; }
