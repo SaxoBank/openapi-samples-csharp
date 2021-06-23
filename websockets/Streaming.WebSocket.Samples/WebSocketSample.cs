@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -93,7 +94,7 @@ namespace Streaming.WebSocket.Samples
 	/// </summary>
 	public sealed class WebSocketSample : IDisposable
 	{
-		
+
 		private readonly string _contextId;
 		private readonly string _referenceId;
 		private readonly string _webSocketConnectionUrl;
@@ -111,7 +112,7 @@ namespace Streaming.WebSocket.Samples
 		public WebSocketSample()
 		{
 			//A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
-            _token = "#######";
+			_token = "eyJhbGciOiJFUzI1NiIsIng1dCI6IjhGQzE5Qjc0MzFCNjNFNTVCNjc0M0QwQTc5MjMzNjZCREZGOEI4NTAifQ.eyJvYWEiOiI3Nzc3NSIsImlzcyI6Im9hIiwiYWlkIjoiMTA5IiwidWlkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiY2lkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiaXNhIjoiRmFsc2UiLCJ0aWQiOiIyMDAyIiwic2lkIjoiNmZiZWEyYjNkODgzNGNkZGIxMjlkMjQ3NDBkNmVlM2MiLCJkZ2kiOiI4NCIsImV4cCI6IjE2MjQ1MTgyNTQiLCJvYWwiOiIxRiJ9.Udoz8QV_2Jwpva_AbLPu3N8a8AdUt9Wxzq7NIs6UmYttky3y9_efNOwWI_SUQBdxPRdpo4WnOKPygAlQAnhODA";
 
 			//Url for streaming server.
 			_webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
@@ -121,7 +122,7 @@ namespace Streaming.WebSocket.Samples
 
 			//Url for creating price subscription.
 			_priceSubscriptionUrl = "https://gateway.saxobank.com/sim/openapi/trade/v1/prices/subscriptions";
-			
+
 			//A string provided by the client to correlate the stream and the subscription. Multiple subscriptions can use the same contextId.
 			_contextId = "ctx_123_1";
 
@@ -162,8 +163,7 @@ namespace Streaming.WebSocket.Samples
 				return;
 			}
 
-			if (!cts.IsCancellationRequested) 
-				Console.WriteLine("Listening on web socket.");
+			if (!cts.IsCancellationRequested) Console.WriteLine("Listening on web socket.");
 
 			//Let's wait until someone stops the sample.
 			while (!cts.IsCancellationRequested)
@@ -201,14 +201,20 @@ namespace Streaming.WebSocket.Samples
 		/// <param name="token">A valid OAuth 2 access token.</param>
 		private async Task Reauthorize(string token)
 		{
-			Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
-			var httpClient = new RestClient(reauthorizationUrl);
-			var request = new RestRequest(Method.PUT)
-							.AddHeader("Authorization", $"BEARER {_token}");
-			var response = await httpClient.ExecuteAsync(request, _cts.Token);
-			if (!response.IsSuccessful)
-				throw new Exception($"{response.StatusCode}");
-			Console.WriteLine("Refreshed token successfully and reauthorized.");
+			using (HttpClient httpClient = new HttpClient())
+			{
+				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				httpClient.DefaultRequestHeaders.ExpectContinue = false;
+
+				Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
+				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, reauthorizationUrl))
+				{
+					request.Headers.Authorization = new AuthenticationHeaderValue("BEARER", token);
+					HttpResponseMessage response = await httpClient.SendAsync(request, _cts.Token);
+					response.EnsureSuccessStatusCode();
+					Console.WriteLine("Refreshed token successfully and reauthorized.");
+				}
+			}
 		}
 
 		/// <summary>
@@ -217,22 +223,25 @@ namespace Streaming.WebSocket.Samples
 		private async Task DeleteSubscription(string[] referenceIds)
 		{
 			ThrowIfDisposed();
+			using (HttpClient httpClient = new HttpClient())
+			{
+				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				httpClient.DefaultRequestHeaders.ExpectContinue = false;
 
-			//In a real implementation we would look at the reference ids passed in and 
-			//delete all the subscriptions listed. But in this implementation only one exists.
-			string deleteSubscriptionUrl = $"{_priceSubscriptionUrl}/{_contextId}/{_referenceId}";
-			var httpClient = new RestClient(deleteSubscriptionUrl);
-			var request = new RestRequest(Method.DELETE)
-							.AddHeader("Authorization", $"BEARER {_token}");
-			var response = await httpClient.ExecuteAsync(request, _cts.Token);
-			if (!response.IsSuccessful)
-				throw new Exception($"{response.StatusCode}");
+				//In a real implementation we would look at the reference ids passed in and 
+				//delete all the subscriptions listed. But in this implementation only one exists.
+				string deleteSubscriptionUrl = $"{_priceSubscriptionUrl}/{_contextId}/{_referenceId}";
+				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, deleteSubscriptionUrl))
+				{
+					await httpClient.SendAsync(request, _cts.Token);
+				}
+			}
 		}
 
 		/// <summary>
 		/// This method sets up a subscription on a stream.
 		/// </summary>
-        private async Task CreateSubscription()
+		private async Task CreateSubscription()
 		{
 			ThrowIfDisposed();
 
@@ -247,45 +256,63 @@ namespace Streaming.WebSocket.Samples
 				}
 			};
 
-			try
+			string json = JsonConvert.SerializeObject(subscriptionRequest);
+			using (HttpClient httpClient = new HttpClient())
 			{
-				// Ensure Expect: 100-Continue is not in the header https://www.developer.saxo/openapi/learn/openapi-request-response
-				// The HttpClient classs in C# uses Expect: 100-Continue by default. Use RestClient instead
-				string json = JsonConvert.SerializeObject(subscriptionRequest);
-				var httpClient = new RestClient(_priceSubscriptionUrl);
-				var request = new RestRequest(Method.POST)
-								.AddJsonBody(subscriptionRequest)
-								.AddHeader("Authorization", $"BEARER {_token}");
-				var response = await httpClient.ExecutePostAsync(request);
-				var content = response.Content;
-				if (!response.IsSuccessful)
-					throw new Exception($"{response.StatusCode} - {content}");
+				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				httpClient.DefaultRequestHeaders.ExpectContinue = false;
+				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _priceSubscriptionUrl))
+				{
+					//Make sure you prepend the _token with the BEARER scheme
+					request.Headers.Authorization = new AuthenticationHeaderValue("BEARER", _token);
+					request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-				Console.WriteLine("Received snapshot:");
-				Console.WriteLine(JToken.Parse(content).ToString(Formatting.Indented));
-				Console.WriteLine();
-			}
-			catch (TaskCanceledException)
-			{
-				return;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Subscription creation error.");
-				Console.WriteLine(e.Message);
-				_cts.Cancel(false);
+					Stream myResponseStream = null;
+					try
+					{
+						HttpResponseMessage response = await httpClient.SendAsync(request, _cts.Token);
+						response.EnsureSuccessStatusCode();
+
+						// Read Response body
+						myResponseStream = await response.Content.ReadAsStreamAsync();
+						if(response.Content.Headers.ContentEncoding.Contains("gzip"))
+							myResponseStream = new GZipStream(myResponseStream, CompressionMode.Decompress, true);
+						using (var myStreamReader = new StreamReader(myResponseStream))
+						{
+							string responseBody = myStreamReader.ReadToEnd();
+							Console.WriteLine("Received snapshot:");
+							Console.WriteLine(JToken.Parse(responseBody).ToString(Formatting.Indented));
+							Console.WriteLine();
+						}
+					}
+					catch (TaskCanceledException)
+					{
+						return;
+					}
+					catch (HttpRequestException e)
+					{
+						Console.WriteLine("Subscription creation error.");
+						Console.WriteLine(e.Message);
+						_cts.Cancel(false);
+					}
+					finally
+                    {
+						if(myResponseStream != null)
+							myResponseStream.Close();
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// Open a websocket connection and start listening for data.
 		/// </summary>
-        private async Task StartWebSocket()
+		private async Task StartWebSocket()
 		{
 			ThrowIfDisposed();
 
 			//Make sure you append the contextId to the websocket connection url, and in the case of reconnection also the last seen message id.
-			Uri url; 
+			Uri url;
 			if (_receivedMessagesCount > 0)
 			{
 				url = new Uri($"{_webSocketConnectionUrl}?contextid={_contextId}&messageid={_lastSeenMessageId}");
@@ -294,7 +321,7 @@ namespace Streaming.WebSocket.Samples
 			{
 				url = new Uri($"{_webSocketConnectionUrl}?contextid={_contextId}");
 			}
-			
+
 			//Make sure you prepend the _token with the BEARER scheme
 			string authorizationHeader = $"BEARER {_token}";
 
@@ -437,21 +464,21 @@ namespace Streaming.WebSocket.Samples
 								offset = 0;
 								WebSocketMessage[] parsedMessages = ParseMessages(message);
 
-                                foreach (WebSocketMessage parsedMessage in parsedMessages)
-                                {
-                                    //Be sure to cache the last seen message id
-                                    _lastSeenMessageId = parsedMessage.MessageId;
-                                    _receivedMessagesCount++;
+								foreach (WebSocketMessage parsedMessage in parsedMessages)
+								{
+									//Be sure to cache the last seen message id
+									_lastSeenMessageId = parsedMessage.MessageId;
+									_receivedMessagesCount++;
 
-                                    if (IsControlMessage(parsedMessage))
-                                    {
-                                        await controlMessageCallback(parsedMessage);
-                                    }
-                                    else
-                                    {
-                                        successCallback(parsedMessage);
-                                    }
-                                }
+									if (IsControlMessage(parsedMessage))
+									{
+										await controlMessageCallback(parsedMessage);
+									}
+									else
+									{
+										successCallback(parsedMessage);
+									}
+								}
 							}
 
 							break;
@@ -475,7 +502,7 @@ namespace Streaming.WebSocket.Samples
 				await errorCallback(e);
 			}
 		}
-		
+
 		/// <summary>
 		/// Stop listening for messages from the websocket stream.
 		/// </summary>
@@ -523,51 +550,51 @@ namespace Streaming.WebSocket.Samples
 		/// <returns>A number of parsed <see cref="WebSocketMessage"/>s.</returns>
 		private WebSocketMessage[] ParseMessages(byte[] message)
 		{
-            List<WebSocketMessage> parsedMessages = new List<WebSocketMessage>();
-            int index = 0;
-            do
-            {
-                //First 8 bytes make up the message id. A 64 bit integer.
-                long messageId = BitConverter.ToInt64(message, index);
-                index += 8;
+			List<WebSocketMessage> parsedMessages = new List<WebSocketMessage>();
+			int index = 0;
+			do
+			{
+				//First 8 bytes make up the message id. A 64 bit integer.
+				long messageId = BitConverter.ToInt64(message, index);
+				index += 8;
 
-                //Skip the next two bytes that contain a reserved field.
-                index += 2;
+				//Skip the next two bytes that contain a reserved field.
+				index += 2;
 
-                //1 byte makes up the reference id length as an 8 bit integer. The reference id has a max length og 50 chars.
-                byte referenceIdSize = message[index];
-                index += 1;
+				//1 byte makes up the reference id length as an 8 bit integer. The reference id has a max length og 50 chars.
+				byte referenceIdSize = message[index];
+				index += 1;
 
-                //n bytes make up the reference id. The reference id is an ASCII string.
-                string referenceId = Encoding.ASCII.GetString(message, index, referenceIdSize);
-                index += referenceIdSize;
+				//n bytes make up the reference id. The reference id is an ASCII string.
+				string referenceId = Encoding.ASCII.GetString(message, index, referenceIdSize);
+				index += referenceIdSize;
 
-                //1 byte makes up the payload format. The value 0 indicates that the payload format is Json.
-                byte payloadFormat = message[index];
-                index++;
+				//1 byte makes up the payload format. The value 0 indicates that the payload format is Json.
+				byte payloadFormat = message[index];
+				index++;
 
-                //4 bytes make up the payload length as a 32 bit integer. 
-                int payloadSize = BitConverter.ToInt32(message, index);
-                index += 4;
+				//4 bytes make up the payload length as a 32 bit integer. 
+				int payloadSize = BitConverter.ToInt32(message, index);
+				index += 4;
 
-                //n bytes make up the actual payload. In the case of the payload format being Json, this is a UTF8 encoded string.
-                byte[] payload = new byte[payloadSize];
-                Array.Copy(message, index, payload, 0, payloadSize);
-                index += payloadSize;
+				//n bytes make up the actual payload. In the case of the payload format being Json, this is a UTF8 encoded string.
+				byte[] payload = new byte[payloadSize];
+				Array.Copy(message, index, payload, 0, payloadSize);
+				index += payloadSize;
 
-                WebSocketMessage parsedMessage = new WebSocketMessage
-                {
-                    MessageId = messageId,
-                    ReferenceId = referenceId,
-                    PayloadFormat = payloadFormat,
-                    Payload = payload
-                };
+				WebSocketMessage parsedMessage = new WebSocketMessage
+				{
+					MessageId = messageId,
+					ReferenceId = referenceId,
+					PayloadFormat = payloadFormat,
+					Payload = payload
+				};
 
-                parsedMessages.Add(parsedMessage);
+				parsedMessages.Add(parsedMessage);
 
-            } while (index < message.Length);
+			} while (index < message.Length);
 
-            return parsedMessages.ToArray();
+			return parsedMessages.ToArray();
 		}
 
 		/// <summary>
@@ -635,7 +662,7 @@ namespace Streaming.WebSocket.Samples
 		private T DecodeWebSocketMessagePayload<T>(WebSocketMessage webSocketMessage)
 		{
 			string messagePayload = Encoding.UTF8.GetString(webSocketMessage.Payload);
-            return JsonConvert.DeserializeObject<T>(messagePayload);
-        }
+			return JsonConvert.DeserializeObject<T>(messagePayload);
+		}
 	}
 }
