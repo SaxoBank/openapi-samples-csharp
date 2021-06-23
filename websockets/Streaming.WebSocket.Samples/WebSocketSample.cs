@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,7 +111,7 @@ namespace Streaming.WebSocket.Samples
 		public WebSocketSample()
 		{
 			//A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
-            _token = "#######";
+            _token = "eyJhbGciOiJFUzI1NiIsIng1dCI6IjhGQzE5Qjc0MzFCNjNFNTVCNjc0M0QwQTc5MjMzNjZCREZGOEI4NTAifQ.eyJvYWEiOiI3Nzc3NSIsImlzcyI6Im9hIiwiYWlkIjoiMTA5IiwidWlkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiY2lkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiaXNhIjoiRmFsc2UiLCJ0aWQiOiIyMDAyIiwic2lkIjoiODk5OGI5ZDI3MzRjNGE0NmIxNjNkMGY3ZDNmY2M2MTciLCJkZ2kiOiI4NCIsImV4cCI6IjE2MjQ1MDE4OTIiLCJvYWwiOiIxRiJ9.wCwt59ErpN7LTwg3XfNqKvMjCDok5XtgNuAArNOQGjrcChAHulxhkPCNuD1uiqDgt3xAAY_NYnDI15Rtwgjlzw";
 
 			//Url for streaming server.
 			_webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
@@ -161,7 +162,8 @@ namespace Streaming.WebSocket.Samples
 				return;
 			}
 
-			if (!cts.IsCancellationRequested) Console.WriteLine("Listening on web socket.");
+			if (!cts.IsCancellationRequested) 
+				Console.WriteLine("Listening on web socket.");
 
 			//Let's wait until someone stops the sample.
 			while (!cts.IsCancellationRequested)
@@ -199,17 +201,14 @@ namespace Streaming.WebSocket.Samples
 		/// <param name="token">A valid OAuth 2 access token.</param>
 		private async Task Reauthorize(string token)
 		{
-			using (HttpClient httpClient = new HttpClient())
-			{
-				Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
-				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, reauthorizationUrl))
-				{
-					request.Headers.Authorization = new AuthenticationHeaderValue("BEARER", token);
-					HttpResponseMessage response = await httpClient.SendAsync(request, _cts.Token);
-					response.EnsureSuccessStatusCode();
-					Console.WriteLine("Refreshed token successfully and reauthorized.");
-				}
-			}
+			Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
+			var httpClient = new RestClient(reauthorizationUrl);
+			var request = new RestRequest(Method.PUT)
+							.AddHeader("Authorization", $"BEARER {_token}");
+			var response = await httpClient.ExecuteAsync(request, _cts.Token);
+			if (!response.IsSuccessful)
+				throw new Exception($"{response.StatusCode}");
+			Console.WriteLine("Refreshed token successfully and reauthorized.");
 		}
 
 		/// <summary>
@@ -218,17 +217,16 @@ namespace Streaming.WebSocket.Samples
 		private async Task DeleteSubscription(string[] referenceIds)
 		{
 			ThrowIfDisposed();
-			using (HttpClient httpClient = new HttpClient())
-			{
 
-				//In a real implementation we would look at the reference ids passed in and 
-				//delete all the subscriptions listed. But in this implementation only one exists.
-				string deleteSubscriptionUrl = $"{_priceSubscriptionUrl}/{_contextId}/{_referenceId}";
-				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, deleteSubscriptionUrl))
-				{
-					await httpClient.SendAsync(request, _cts.Token);
-				}
-			}
+			//In a real implementation we would look at the reference ids passed in and 
+			//delete all the subscriptions listed. But in this implementation only one exists.
+			string deleteSubscriptionUrl = $"{_priceSubscriptionUrl}/{_contextId}/{_referenceId}";
+			var httpClient = new RestClient(deleteSubscriptionUrl);
+			var request = new RestRequest(Method.DELETE)
+							.AddHeader("Authorization", $"BEARER {_token}");
+			var response = await httpClient.ExecuteAsync(request, _cts.Token);
+			if (!response.IsSuccessful)
+				throw new Exception($"{response.StatusCode}");
 		}
 
 		/// <summary>
@@ -249,35 +247,33 @@ namespace Streaming.WebSocket.Samples
 				}
 			};
 
-			string json = JsonConvert.SerializeObject(subscriptionRequest);
-			using (HttpClient httpClient = new HttpClient())
+			try
 			{
-				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _priceSubscriptionUrl))
-				{
-					//Make sure you prepend the _token with the BEARER scheme
-					request.Headers.Authorization = new AuthenticationHeaderValue("BEARER", _token);
-					request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+				// Ensure Expect: 100-Continue is not in the header https://www.developer.saxo/openapi/learn/openapi-request-response
+				// The HttpClient classs in C# uses Expect: 100-Continue by default. Use RestClient instead
+				string json = JsonConvert.SerializeObject(subscriptionRequest);
+				var httpClient = new RestClient(_priceSubscriptionUrl);
+				var request = new RestRequest(Method.POST)
+								.AddJsonBody(subscriptionRequest)
+								.AddHeader("Authorization", $"BEARER {_token}");
+				var response = await httpClient.ExecutePostAsync(request);
+				var content = response.Content;
+				if (!response.IsSuccessful)
+					throw new Exception($"{response.StatusCode} - {content}");
 
-					try
-					{
-						HttpResponseMessage response = await httpClient.SendAsync(request, _cts.Token);
-						response.EnsureSuccessStatusCode();
-						string responseBody = await response.Content.ReadAsStringAsync();
-						Console.WriteLine("Received snapshot:");
-						Console.WriteLine(JToken.Parse(responseBody).ToString(Formatting.Indented));
-						Console.WriteLine();
-					}
-					catch (TaskCanceledException)
-					{
-						return;
-					}
-					catch (HttpRequestException e)
-					{
-						Console.WriteLine("Subscription creation error.");
-						Console.WriteLine(e.Message);
-						_cts.Cancel(false);
-					}
-				}
+				Console.WriteLine("Received snapshot:");
+				Console.WriteLine(JToken.Parse(content).ToString(Formatting.Indented));
+				Console.WriteLine();
+			}
+			catch (TaskCanceledException)
+			{
+				return;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Subscription creation error.");
+				Console.WriteLine(e.Message);
+				_cts.Cancel(false);
 			}
 		}
 
