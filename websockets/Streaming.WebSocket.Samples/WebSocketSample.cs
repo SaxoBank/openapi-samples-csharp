@@ -112,7 +112,7 @@ namespace Streaming.WebSocket.Samples
 		public WebSocketSample()
 		{
 			//A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
-			_token = "eyJhbGciOiJFUzI1NiIsIng1dCI6IjhGQzE5Qjc0MzFCNjNFNTVCNjc0M0QwQTc5MjMzNjZCREZGOEI4NTAifQ.eyJvYWEiOiI3Nzc3NSIsImlzcyI6Im9hIiwiYWlkIjoiMTA5IiwidWlkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiY2lkIjoiZFg4NzBzYTJkaXVVMWRjSTVlfGtjQT09IiwiaXNhIjoiRmFsc2UiLCJ0aWQiOiIyMDAyIiwic2lkIjoiNmZiZWEyYjNkODgzNGNkZGIxMjlkMjQ3NDBkNmVlM2MiLCJkZ2kiOiI4NCIsImV4cCI6IjE2MjQ1MTgyNTQiLCJvYWwiOiIxRiJ9.Udoz8QV_2Jwpva_AbLPu3N8a8AdUt9Wxzq7NIs6UmYttky3y9_efNOwWI_SUQBdxPRdpo4WnOKPygAlQAnhODA";
+			_token = "######";
 
 			//Url for streaming server.
 			_webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
