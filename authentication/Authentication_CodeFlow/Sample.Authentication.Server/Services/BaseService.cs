@@ -35,6 +35,7 @@ namespace Sample.Authentication.Server.Services
             {
                 using (var httpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false }))
                 {
+                    httpClient.DefaultRequestHeaders.ExpectContinue = false;
                     var res = httpClient.SendAsync(request).Result;
                     content = res.Content.ReadAsStringAsync().Result;
                     res.EnsureSuccessStatusCode();
