@@ -66,12 +66,10 @@ namespace Streaming.WebSocket.Samples
 		/// </summary>
 		private static void ListenForEscape()
 		{
-			ConsoleKeyInfo key = new ConsoleKeyInfo();
-
-			while (!Console.KeyAvailable)
+            while (!Console.KeyAvailable)
 			{
-				key = Console.ReadKey(true);
-				if (key.Key == ConsoleKey.Escape)
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Escape)
 				{
 					_closeConnectionAction?.Invoke();
 					break;

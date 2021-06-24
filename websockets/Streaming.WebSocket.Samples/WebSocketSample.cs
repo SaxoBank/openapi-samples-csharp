@@ -149,6 +149,7 @@ namespace Streaming.WebSocket.Samples
 
 			//Start a task to renew the token when needed. If we don't do this the connection will be terminated once the token expires.
 			DateTime tokenDummyExpiryTime = DateTime.Now.AddHours(2); //Here you need to provide the correct expiry time for the token. This is just a dummy value.
+			//When the code breaks here, you probably need to add a valid _token in the code above.
 			Task taskReauthorization = new Task(async () => { await ReauthorizeWhenNeeded(tokenDummyExpiryTime, cts.Token); }, cts.Token);
 			taskReauthorization.Start();
 
