@@ -204,6 +204,10 @@ namespace Streaming.WebSocket.Samples
 			using (HttpClient httpClient = new HttpClient())
 			{
 				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				// In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
+				// who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
+				// since most requests are quite small.
+				// We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
 				httpClient.DefaultRequestHeaders.ExpectContinue = false;
 
 				Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
@@ -226,6 +230,10 @@ namespace Streaming.WebSocket.Samples
 			using (HttpClient httpClient = new HttpClient())
 			{
 				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				// In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
+				// who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
+				// since most requests are quite small.
+				// We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
 				httpClient.DefaultRequestHeaders.ExpectContinue = false;
 
 				//In a real implementation we would look at the reference ids passed in and 
@@ -260,6 +268,10 @@ namespace Streaming.WebSocket.Samples
 			using (HttpClient httpClient = new HttpClient())
 			{
 				// Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+				// In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
+				// who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
+				// since most requests are quite small.
+				// We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
 				httpClient.DefaultRequestHeaders.ExpectContinue = false;
 				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _priceSubscriptionUrl))
 				{
