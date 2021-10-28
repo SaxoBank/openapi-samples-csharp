@@ -1,14 +1,11 @@
-﻿using Newtonsoft.Json;
-using OpenAPI.Models;
+﻿using OpenAPI.Models;
 using Sample.Authentication.Server.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sample.Authentication.Server.Services
 {
@@ -87,7 +84,6 @@ namespace Sample.Authentication.Server.Services
             }
         }
 
-
         /// <summary>
         /// Encoding as the Basic method
         /// </summary>
@@ -99,7 +95,6 @@ namespace Sample.Authentication.Server.Services
             var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{secret}"));
             return new AuthenticationHeaderValue("Basic", encoded);
         }
-
      
         public static string GetRandomString()
         {

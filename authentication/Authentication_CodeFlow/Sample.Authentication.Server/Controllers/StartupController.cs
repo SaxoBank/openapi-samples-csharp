@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OpenAPI.Models;
-using System.Web.Http;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using Sample.Authentication.Server.Models;
 using Sample.Authentication.Server.Services;
 
 namespace Sample.Authentication.Server.Controllers
@@ -25,8 +16,8 @@ namespace Sample.Authentication.Server.Controllers
     [ApiController]
     public class StartupController : ControllerBase
     {
-        private AuthService _authService;
-        private ClientService _clientService;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
 
         public StartupController()
         {
@@ -55,7 +46,7 @@ namespace Sample.Authentication.Server.Controllers
         }
 
         /// <summary>
-        /// Plese make sure that the RedirectURL points to this endpoint
+        /// Please make sure that the RedirectURL points to this endpoint
         /// Callback by SAXO - Get access token by authentication code
         /// </summary>
         /// <param name="code">authentication code</param>
@@ -68,6 +59,8 @@ namespace Sample.Authentication.Server.Controllers
             try
             {
                 if (string.IsNullOrEmpty(code))
+                    return this.BadRequest("Invalid authorization code");
+                if (string.IsNullOrEmpty(state))
                     return this.BadRequest("Invalid authorization code");
 
                 var app = GetApp();
@@ -111,7 +104,6 @@ namespace Sample.Authentication.Server.Controllers
                 return this.BadRequest(ex.Message);
             }
         }
-
 
         /// <summary>
         /// Read App from configuration file

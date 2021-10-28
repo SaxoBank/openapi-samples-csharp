@@ -1,10 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace Sample.Authentication.Server.Services
 {
@@ -20,7 +17,6 @@ namespace Sample.Authentication.Server.Services
         {
             return new AuthenticationHeaderValue(tokenType, accessToken);
         }
-
 
         /// <summary>
         /// Send out token request
