@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Sample.Authentication.Server
 {
@@ -20,9 +17,7 @@ namespace Sample.Authentication.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-                    .AddJsonOptions(opt => SetJsonFormat(opt));
+            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,21 +34,13 @@ namespace Sample.Authentication.Server
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+            });
         }
 
-        /// <summary>
-        /// Define Json Format
-        /// </summary>
-        /// <param name="option"></param>
-        private void SetJsonFormat(MvcJsonOptions option)
-        {
-            option.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            option.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            option.SerializerSettings.Formatting = Formatting.Indented;
-            option.SerializerSettings.MaxDepth = 4;
-            option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Serialize;
-            option.SerializerSettings.DateFormatString = "yyyy-MM-ddThh:mm:ss.fff";
-        }
     }
 }

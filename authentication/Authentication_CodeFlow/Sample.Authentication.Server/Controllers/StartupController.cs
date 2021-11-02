@@ -8,9 +8,14 @@ using Sample.Authentication.Server.Services;
 namespace Sample.Authentication.Server.Controllers
 {
     /// <summary>
-    /// This sample only shows how to sign in a single user with the Code Flow
-    /// Refer to : https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant for details
+    /// This sample only shows how to sign in a single user with the Code Flow.
+    /// Refer to: https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant for details.
     /// Token management and state management for a large number of users are not incorporated in this sample.
+    /// 
+    /// Three URLs:
+    /// https://localhost:44315/startup/app
+    /// https://localhost:44315/startup
+    /// https://localhost:44315/startup/token/{refreshToken}
     /// </summary>
     [Route("[controller]")]
     [ApiController]
@@ -61,15 +66,17 @@ namespace Sample.Authentication.Server.Controllers
                 if (string.IsNullOrEmpty(code))
                     return this.BadRequest("Invalid authorization code");
                 if (string.IsNullOrEmpty(state))
-                    return this.BadRequest("Invalid authorization code");
+                    return this.BadRequest("Invalid state");
 
                 var app = GetApp();
 
                 var token = _authService.GetToken(app, code);
 
-                var client = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                var exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
 
-                return this.Ok(new { Token = token, Client = client });
+                return this.Ok(new { Token = token, ExampleApiResponse = JsonConvert.SerializeObject(exampleApiResponse) });
+
+
             }
             catch (Exception ex)
             {
@@ -95,9 +102,9 @@ namespace Sample.Authentication.Server.Controllers
 
                 var token = _authService.RefreshToken(app, refreshToken);
 
-                var client = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                var exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
 
-                return this.Ok(new { Token = token, Client = client });
+                return this.Ok(new { Token = token, ExampleApiResponse = JsonConvert.SerializeObject(exampleApiResponse) });
             }
             catch (Exception ex)
             {
