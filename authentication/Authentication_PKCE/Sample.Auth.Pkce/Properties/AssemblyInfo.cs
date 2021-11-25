@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SAXO")]
 [assembly: AssemblyProduct("Sample.Auth.Pkce2")]
-[assembly: AssemblyCopyright("Copyright © SAXO 2020")]
+[assembly: AssemblyCopyright("Copyright © SAXO 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

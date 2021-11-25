@@ -1,11 +1,11 @@
 ﻿{
-  "AppName": "",
-  "AppKey": "",
+  "AppName": "Enter your app name with the below redirect URL",
+  "AppKey": "Enter your app key",
   "AuthorizationEndpoint": "https://sim.logonvalidation.net/authorize",
   "TokenEndpoint": "https://sim.logonvalidation.net/token",
   "GrantType": "PKCE",
   "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi/",
   "RedirectUrls": [
-    ""
+    "http://localhost/mypkceapp"
   ]
 }

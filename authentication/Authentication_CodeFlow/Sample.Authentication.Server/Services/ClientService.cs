@@ -17,7 +17,10 @@ namespace Sample.Authentication.Server.Services
         {
             var url = new Uri(new Uri(openApiBaseUrl), "port/v1/clients/me");
 
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url)
+            {
+                Version = new Version(2, 0)  // Make sure HTTP/2 is used, if available
+            };
             request.Headers.Authorization = GetAuthorizationHeader(accessToken, tokenType);
 
             try
@@ -26,7 +29,7 @@ namespace Sample.Authentication.Server.Services
             }
             catch (Exception ex)
             {
-                throw new HttpRequestException("Error requesting client", ex);
+                throw new HttpRequestException("Error requesting data from the OpenApi: " + ex.Message, ex);
             }
         }
     }
