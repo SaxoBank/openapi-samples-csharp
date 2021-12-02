@@ -112,7 +112,7 @@ namespace Streaming.WebSocket.Samples
         public WebSocketSample()
         {
             //A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
-            _token = "######";
+            _token = "#####";
 
             //Url for streaming server.
             _webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
@@ -196,13 +196,20 @@ namespace Streaming.WebSocket.Samples
             }
         }
 
+        private HttpClient CreateHttpClient()
+        {
+            var handler = new HttpClientHandler { AllowAutoRedirect = false, AutomaticDecompression = System.Net.DecompressionMethods.GZip };
+            return new HttpClient(handler);
+        }
+
+
         /// <summary>
         /// A method that reauthorizes the Web Socket connection.
         /// </summary>
         /// <param name="token">A valid OAuth2 access token.</param>
         private async Task Reauthorize(string token)
         {
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = CreateHttpClient())
             {
                 // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
                 // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
@@ -228,7 +235,7 @@ namespace Streaming.WebSocket.Samples
         private async Task DeleteSubscription(string[] referenceIds)
         {
             ThrowIfDisposed();
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = CreateHttpClient())
             {
                 // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
                 // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
@@ -266,7 +273,7 @@ namespace Streaming.WebSocket.Samples
             };
 
             string json = JsonConvert.SerializeObject(subscriptionRequest);
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = CreateHttpClient())
             {
                 // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
                 // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
@@ -289,10 +296,6 @@ namespace Streaming.WebSocket.Samples
                         Console.WriteLine(request.RequestUri + " is using HTTP/" + response.Version);
                         // Read Response body
                         myResponseStream = await response.Content.ReadAsStreamAsync();
-                        if (response.Content.Headers.ContentEncoding.Contains("gzip"))
-                        {
-                            myResponseStream = new GZipStream(myResponseStream, CompressionMode.Decompress, true);
-                        }
                         using (StreamReader myStreamReader = new StreamReader(myResponseStream))
                         {
                             string responseBody = myStreamReader.ReadToEnd();
