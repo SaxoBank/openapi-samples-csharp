@@ -113,7 +113,7 @@ namespace Streaming.WebSocket.Samples
         {
             //A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
             _token = "######";
-
+           
             //Url for streaming server.
             _webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
 
@@ -196,10 +196,24 @@ namespace Streaming.WebSocket.Samples
             }
         }
 
+        /// <summary>
+        /// Create HttpClient object and give defualt settings
+        /// </summary>
+        /// <returns>HttpClient object</returns>
         private HttpClient CreateHttpClient()
         {
             var handler = new HttpClientHandler { AllowAutoRedirect = false, AutomaticDecompression = System.Net.DecompressionMethods.GZip };
-            return new HttpClient(handler);
+            var httpClient =  new HttpClient(handler);
+
+            // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
+            // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
+            // who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
+            // since most requests are quite small.
+            // We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
+            // See: http://chrisoldwood.blogspot.com/2016/12/surprising-defaults-httpclient.html as an detailed example
+            httpClient.DefaultRequestHeaders.ExpectContinue = false;
+            
+            return httpClient;
         }
 
 
@@ -211,13 +225,6 @@ namespace Streaming.WebSocket.Samples
         {
             using (HttpClient httpClient = CreateHttpClient())
             {
-                // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
-                // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
-                // who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
-                // since most requests are quite small.
-                // We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
-                httpClient.DefaultRequestHeaders.ExpectContinue = false;
-
                 Uri reauthorizationUrl = new Uri($"{_webSocketAuthorizationUrl}?contextid={_contextId}");
                 using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, reauthorizationUrl))
                 {
@@ -237,13 +244,6 @@ namespace Streaming.WebSocket.Samples
             ThrowIfDisposed();
             using (HttpClient httpClient = CreateHttpClient())
             {
-                // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
-                // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
-                // who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
-                // since most requests are quite small.
-                // We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
-                httpClient.DefaultRequestHeaders.ExpectContinue = false;
-
                 //In a real implementation we would look at the reference ids passed in and 
                 //delete all the subscriptions listed. But in this implementation only one exists.
                 string deleteSubscriptionUrl = $"{_priceSubscriptionUrl}/{_contextId}/{_referenceId}";
@@ -275,12 +275,6 @@ namespace Streaming.WebSocket.Samples
             string json = JsonConvert.SerializeObject(subscriptionRequest);
             using (HttpClient httpClient = CreateHttpClient())
             {
-                // Disable Expect: 100 Continue according to https://www.developer.saxo/openapi/learn/openapi-request-response
-                // In our experience the same two-step process has been difficult to get to work reliable, especially as we support clients world wide, 
-                // who connect to us through a multitude of network gateways and proxies.We also find that the actual bandwidth savings for the majority of API requests are limited, 
-                // since most requests are quite small.
-                // We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
-                httpClient.DefaultRequestHeaders.ExpectContinue = false;
                 using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _priceSubscriptionUrl))
                 {
                     //Make sure you prepend the _token with the BEARER scheme
