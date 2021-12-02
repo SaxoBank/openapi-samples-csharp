@@ -112,7 +112,7 @@ namespace Streaming.WebSocket.Samples
         public WebSocketSample()
         {
             //A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
-            _token = "#####";
+            _token = "######";
 
             //Url for streaming server.
             _webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
