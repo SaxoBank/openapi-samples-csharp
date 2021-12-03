@@ -280,7 +280,6 @@ namespace Streaming.WebSocket.Samples
                     request.Headers.Authorization = new AuthenticationHeaderValue("BEARER", _token);
                     request.Content = new StringContent(json, Encoding.UTF8, "application/json");
                     
-                    Stream myResponseStream = null;
                     try
                     {
                         HttpResponseMessage response = await httpClient.SendAsync(request, _cts.Token);
@@ -288,14 +287,10 @@ namespace Streaming.WebSocket.Samples
                         // Saxobank is moving to HTTP/2, but here only HTTP/1.0 and HTTP/1.1 version requests are supported.
                         Console.WriteLine(request.RequestUri + " is using HTTP/" + response.Version);
                         // Read Response body
-                        myResponseStream = await response.Content.ReadAsStreamAsync();
-                        using (StreamReader myStreamReader = new StreamReader(myResponseStream))
-                        {
-                            string responseBody = myStreamReader.ReadToEnd();
-                            Console.WriteLine("Received snapshot:");
-                            Console.WriteLine(JToken.Parse(responseBody).ToString(Formatting.Indented));
-                            Console.WriteLine();
-                        }
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Received snapshot:");
+                        Console.WriteLine(JToken.Parse(responseBody).ToString(Formatting.Indented));
+                        Console.WriteLine();
                     }
                     catch (TaskCanceledException)
                     {
@@ -306,11 +301,6 @@ namespace Streaming.WebSocket.Samples
                         Console.WriteLine("Subscription creation error.");
                         Console.WriteLine(e.Message);
                         _cts.Cancel(false);
-                    }
-                    finally
-                    {
-                        if(myResponseStream != null)
-                            myResponseStream.Close();
                     }
                 }
             }
