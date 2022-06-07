@@ -21,7 +21,7 @@ namespace Sample.Authentication.Cba.Services
         public Token GetTokenByOAuthCba(App app, Certificate certificate)
         {
             if (certificate.ClientCertificate == null)
-                throw new InvalidOperationException($"Invalid Certificate {certificate.ClientCertSerialNumber}");
+                throw new InvalidOperationException($"Invalid or unknown Certificate {certificate.ClientCertSerialNumber} - did you import the certificate to the Personal store?");
 
             string assertion = CreateAssertion(app, certificate);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);

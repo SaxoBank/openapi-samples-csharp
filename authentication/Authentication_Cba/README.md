@@ -29,10 +29,9 @@ Saxo Bank will inform you, once the user has been configured for certificate man
 
 At that point you must follow the procedure outlined here to download a certificate [Managing Certificates in MyAccount] (https://developer.saxobank.com/openapi/learn/managing-certificates-in-myaccount).
 
-
 ## Installing the certificate
 You must now install the certificate on the machine. Double-click the certificate file.
-![Installing the certificate](./InstallCert1.png)
+![Certificate Import Wizard - Local Machine](./InstallCert1.png)
 
 Select the certificate.
 
@@ -44,14 +43,18 @@ Enter the password obtained when the certificate was downloaded.
 
 Select a certificate store.
 
-![Enter certificate password](./InstallCert4.png)
+![Select Personal Store](./InstallCert4.png)
 
 Complete the import
 
-![Enter certificate password](./InstallCert5.png)
+![Overview before import](./InstallCert5.png)
 
-![Enter certificate password](./InstallCert6.png)
+![Import complete](./InstallCert6.png)
 
+## Verify that the certificate is installed correctly
+After installation, you can verify that the certificate is available in the Certificate Manager of the Local Computer.
+
+![Certificate store](./InstallCert7.png)
 
 ## Update Application Settings with the values provided
 Application settings go into the App.json file.
@@ -63,14 +66,12 @@ Settings for the certificate is placed in the Certificate.json file.
 ![Certificate settings](./VisualStudio2.png)
 
 ## Run the application
-The application is now fully configured. However, since the application needs to fetch the certificate from the certificate store, it must be run with administrative privilges. (This not the preferred solution, but done in this example for simplicity.)
+The application is now fully configured. However, since the application needs to fetch the certificate from the certificate store, you might run Visual Studio with administrative privilges.
 
 Make sure Visual Studio is run as administrator (see below). If not, exit Visual Studio and restart it with "Run as administrator".
-![Certificate settings](./VisualStudio3.png)
+![Run as admin](./VisualStudio3.png)
 
 ### Now press F5.
 You should now see the application automatically logging in, fetching an access token and returning client details.
 
-![Certificate settings](./ClientDetails.png)
-
-
+![Result](./ClientDetails.png)

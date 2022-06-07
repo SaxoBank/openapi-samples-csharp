@@ -1,9 +1,13 @@
 ﻿{
-    // This is the userId used to generate the p12 certificate (in Chrome).
-    "UserId": "12345",
-    // This is the serial, supplied when generating the certificate.
-    // It was also the file name.
-    // Used to lookup the certificate in the Local Machine library.
-    // Example: 6B000007CA3413AA65FEA7F3940002000007CA
-    "ClientCertSerialNumber": "Add your certificate serial number"
+  /* Be sure to enter the details for the user and certificate in the Certificate.json config
+   * This is the userId used to generate the p12 certificate (in Chrome).
+   * The certificate must be imported in the machines personal store:
+   * https://github.com/SaxoBank/openapi-samples-csharp/tree/master/authentication/Authentication_Cba#certificate-based-authentication-sample
+   */
+  "UserId": "12345",
+  // This is the serial, supplied when generating the certificate.
+  // It was also the file name.
+  // Used to lookup the certificate in the Local Machine library.
+  // Example: 6B000007CA3413AA65FEA7F3940002000007CA
+  "ClientCertSerialNumber": "Add your certificate serial number"
 }

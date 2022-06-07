@@ -1,7 +1,12 @@
 ﻿{
-    "AppKey": "Add your app key",
-    "AppSecret": "Add your app secret",
-    "ServiceProviderUrl": "Add your unique(!) redirect URL",
-    "TokenEndpoint": "https://sim.logonvalidation.net/token",
-    "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi/"
+  /* Be sure to enter the details for the user and certificate in the Certificate.json config
+   * The certificate must be imported in the machines personal store:
+   * https://github.com/SaxoBank/openapi-samples-csharp/tree/master/authentication/Authentication_Cba#certificate-based-authentication-sample
+   */
+  "AppKey": "Add your app key",
+  "AppSecret": "Add your app secret",
+  // ServiceProviderUrl is the URL you've received from Saxo, when requestion CBA access for your app
+  "ServiceProviderUrl": "Add your unique(!) redirect URL",
+  "TokenEndpoint": "https://sim.logonvalidation.net/token",
+  "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi/"
 }
