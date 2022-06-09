@@ -87,7 +87,7 @@ namespace Sample.Auth.Pkce.Services
             }
             catch(Exception ex)
             {
-                throw new HttpRequestException("Error requesting access token using refresh token" + refreshToken, ex);
+                throw new HttpRequestException("Error requesting access token using refresh token " + refreshToken, ex);
             }
         }
 

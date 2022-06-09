@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 
 namespace Sample.Authentication.Server.Services
@@ -15,7 +16,7 @@ namespace Sample.Authentication.Server.Services
         /// <returns></returns>
         public dynamic GetClient(string openApiBaseUrl, string accessToken, string tokenType)
         {
-            var url = new Uri(new Uri(openApiBaseUrl), "port/v1/clients/me");
+            Uri url = new Uri(Path.Combine(openApiBaseUrl, "port/v1/clients/me"));
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url)
             {

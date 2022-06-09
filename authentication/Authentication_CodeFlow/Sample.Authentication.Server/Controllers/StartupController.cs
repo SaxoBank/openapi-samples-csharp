@@ -10,7 +10,7 @@ namespace Sample.Authentication.Server.Controllers
     /// <summary>
     /// This sample only shows how to sign in a single user with the Code Flow.
     /// Refer to: https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant for details.
-    /// Token management and state management for a large number of users are not incorporated in this sample.
+    /// Token management for a large number of users is not incorporated in this sample.
     /// 
     /// Three URLs:
     /// https://localhost:44315/startup/app
@@ -31,7 +31,7 @@ namespace Sample.Authentication.Server.Controllers
         }
 
         /// <summary>
-        /// Redirect to the login page SAXO
+        /// Redirect to the login page
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -39,8 +39,8 @@ namespace Sample.Authentication.Server.Controllers
         {
             try
             {
-                var app = GetApp();
-                var redirectUrl = _authService.GetAuthenticationRequest(app);
+                App app = GetApp();
+                string redirectUrl = _authService.GetAuthenticationRequest(app);
 
                 return this.Redirect(redirectUrl);
             }
@@ -52,31 +52,33 @@ namespace Sample.Authentication.Server.Controllers
 
         /// <summary>
         /// Please make sure that the RedirectURL points to this endpoint
-        /// Callback by SAXO - Get access token by authentication code
+        /// Callback - Get access token by authentication code
         /// </summary>
-        /// <param name="code">authentication code</param>
-        /// <param name="state">state</param>
+        /// <param name="error">Optional error code</param>
+        /// <param name="error_description">Optional error description</param>
+        /// <param name="code">Authentication code</param>
+        /// <param name="state">State</param>
         /// <returns>Token</returns>
         [HttpGet]
         [Route("authorization")]
-        public IActionResult Autorization(string code, string state)
+        public IActionResult Autorization(string error, string error_description, string code, string state)
         {
             try
             {
+                // Make sure the customer knows something went wrong. A common issue is the account not being active yet, due to the initial deposit.
                 if (string.IsNullOrEmpty(code))
-                    return this.BadRequest("Invalid authorization code");
-                if (string.IsNullOrEmpty(state))
-                    return this.BadRequest("Invalid state");
+                    return this.BadRequest("Error during authorization (" + error + "): " + error_description);
+                // Compare the state used when generating the URL with the received state - they must match
+                if (state != Models.Constants.State)
+                    return this.BadRequest("Invalid state returned");
+                
+                App app = GetApp();
 
-                var app = GetApp();
+                Models.Token token = _authService.GetToken(app, code);
 
-                var token = _authService.GetToken(app, code);
-
-                var exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                dynamic exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
 
                 return this.Ok(new { Token = token, ExampleApiResponse = JsonConvert.SerializeObject(exampleApiResponse) });
-
-
             }
             catch (Exception ex)
             {
@@ -98,11 +100,11 @@ namespace Sample.Authentication.Server.Controllers
                 if (string.IsNullOrEmpty(refreshToken))
                     return this.BadRequest("Invalid refresh token");
 
-                var app = GetApp();
+                App app = GetApp();
 
-                var token = _authService.RefreshToken(app, refreshToken);
+                Models.Token token = _authService.RefreshToken(app, refreshToken);
 
-                var exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                dynamic exampleApiResponse = _clientService.GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
 
                 return this.Ok(new { Token = token, ExampleApiResponse = JsonConvert.SerializeObject(exampleApiResponse) });
             }
@@ -120,8 +122,9 @@ namespace Sample.Authentication.Server.Controllers
         [Route("app")]
         public App GetApp()
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "App.json");
-            var content = System.IO.File.ReadAllText(path);
+            string path = Path.Combine(AppContext.BaseDirectory, "App.json");
+            Console.WriteLine("Reading app config: " + path);
+            string content = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<App>(content);
         }
     }

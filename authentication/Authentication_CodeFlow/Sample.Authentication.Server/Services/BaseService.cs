@@ -19,14 +19,16 @@ namespace Sample.Authentication.Server.Services
         }
 
         /// <summary>
-        /// Send out token request
+        /// Send out token and API requests
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
         protected T Send<T>(HttpRequestMessage request)
         {
             string content = string.Empty;
-
+#if DEBUG
+            Console.WriteLine("Processing request:\n" + request);  // This request contains a token. Only log this for demo and debugging!
+#endif
             try
             {
                 using (var httpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false }))
@@ -37,7 +39,7 @@ namespace Sample.Authentication.Server.Services
                     // since most requests are quite small.
                     // We therefore strongly recommend against using the Expect:100 - Continue header, and expect you to make sure your client library does not rely on this mechanism.
                     httpClient.DefaultRequestHeaders.ExpectContinue = false;
-                    var res = httpClient.SendAsync(request).Result;
+                    HttpResponseMessage res = httpClient.SendAsync(request).Result;
                     content = res.Content.ReadAsStringAsync().Result;
                     res.EnsureSuccessStatusCode();
 
