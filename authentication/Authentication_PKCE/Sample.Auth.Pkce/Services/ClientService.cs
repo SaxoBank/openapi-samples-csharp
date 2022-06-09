@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 
 namespace Sample.Auth.Pkce.Services
@@ -15,11 +16,12 @@ namespace Sample.Auth.Pkce.Services
         /// <returns></returns>
         public dynamic GetClient(string openApiBaseUrl, string accessToken, string tokenType)
         {
-            Uri url = new Uri(new Uri(openApiBaseUrl), "port/v1/clients/me");
+            Uri url = new Uri(Path.Combine(openApiBaseUrl, "port/v1/clients/me"));
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url)
             {
-                Version = new Version(1, 1)  // Make sure HTTP/2 is used, once available
+                Version = new Version(1, 1)  // C# Framework 4 doesn't support HTTP/2, so downgrade to 1.1.
+                                             // Use HTTP/2 when you app supports .NET Core!
             };
             request.Headers.Authorization = GetAuthorizationHeader(accessToken, tokenType);
 

@@ -1,15 +1,10 @@
-﻿
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using Sample.Auth.Pkce.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace Sample.Auth.Pkce.Services
 {
@@ -25,15 +20,15 @@ namespace Sample.Auth.Pkce.Services
         /// <returns></returns>
         public string GetAuthenticationRequest(App app)
         {
-            var authUrl = app.AuthorizationEndpoint;
-            var redirectUri = Uri.EscapeDataString(app.RedirectUrls[0]);
-            var state = _randomService.GetRandomString(8);
+            string authUrl = app.AuthorizationEndpoint;
+            string redirectUri = Uri.EscapeDataString(app.RedirectUrls[0]);
+            string state = _randomService.GetRandomString(8);
             app.CodeVerifier = _randomService.GetRandomString(43);
-            var codeChallengeMethod = "S256";
-            var codeChallenge = GetCodeChallenge(app.CodeVerifier);
+            string codeChallengeMethod = "S256";
+            string codeChallenge = GetCodeChallenge(app.CodeVerifier);
 
-            return string.Format("{0}?response_type=code&client_id={1}&code_verifier={2}&redirect_uri={3}&code_challenge_method={4}&code_challenge={5}&state={6}", 
-                            authUrl, app.AppKey, app.CodeVerifier, redirectUri, codeChallengeMethod, codeChallenge, state);
+            return string.Format("{0}?response_type=code&client_id={1}&redirect_uri={2}&code_challenge_method={3}&code_challenge={4}&state={5}", 
+                            authUrl, app.AppKey, redirectUri, codeChallengeMethod, codeChallenge, state);
         }
 
         /// <summary>
@@ -46,18 +41,20 @@ namespace Sample.Auth.Pkce.Services
         public Token GetToken(App app, string authCode)
         {
             // Create request
-            var tokenUrl = app.TokenEndpoint;
-            var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
-
-            // https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant-pkce
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint)
             {
-                { "grant_type", "authorization_code" },
-                { "code", authCode },
-                { "client_id", app.AppKey},
-                { "code_verifier", app.CodeVerifier},
-                { "redirect_uri", app.RedirectUrls[0]}
-            });
+                Version = new Version(1, 1),  // C# Framework 4 doesn't support HTTP/2, so downgrade to 1.1.
+                                              // Use HTTP/2 when you app supports .NET Core!
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                            {
+                                // https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant-pkce
+                                { "grant_type", "authorization_code" },
+                                { "code", authCode },
+                                { "client_id", app.AppKey},
+                                { "code_verifier", app.CodeVerifier},
+                                { "redirect_uri", app.RedirectUrls[0]}
+                            })
+            };
 
             try
             {
@@ -65,7 +62,7 @@ namespace Sample.Auth.Pkce.Services
             }
             catch (Exception ex)
             {
-                throw new HttpRequestException("Error requesting access token using:" + authCode, ex);
+                throw new HttpRequestException("Error requesting access token using: " + authCode, ex);
             }
         }
 
@@ -77,11 +74,7 @@ namespace Sample.Auth.Pkce.Services
         /// <returns></returns>
         public Token RefreshToken(App app, string refreshToken)
         {
-            var authenticationUrl = app.TokenEndpoint;
-            var appKey = app.AppKey;
-            var codeVerifier = app.CodeVerifier;
-
-            var request = new HttpRequestMessage(HttpMethod.Post, authenticationUrl);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
             request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "refresh_token", refreshToken },
@@ -107,8 +100,8 @@ namespace Sample.Auth.Pkce.Services
         {
             using (var sha256 = SHA256.Create())
             {
-                var bytes = Encoding.ASCII.GetBytes(codeVerifier);
-                var challengeBytes = sha256.ComputeHash(bytes);
+                byte[] bytes = Encoding.ASCII.GetBytes(codeVerifier);
+                byte[] challengeBytes = sha256.ComputeHash(bytes);
                 return Base64UrlEncoder.Encode(challengeBytes);
             }
         }

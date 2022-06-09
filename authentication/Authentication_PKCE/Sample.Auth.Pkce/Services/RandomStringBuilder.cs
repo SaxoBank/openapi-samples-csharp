@@ -30,17 +30,17 @@ namespace Sample.Auth.Pkce.Services
             if (length <= 0)
                 return string.Empty;
 
-            var randomString = new StringBuilder(length);
+            StringBuilder randomString = new StringBuilder(length);
             using (var rnd = new RNGCryptoServiceProvider())
             {
-                var buf = new byte[length];
+                byte[] buf = new byte[length];
                 rnd.GetBytes(buf);
 
-                var enumerator = buf.GetEnumerator();
+                System.Collections.IEnumerator enumerator = buf.GetEnumerator();
                 while (randomString.Length < length)
                 {
                     enumerator.MoveNext();
-                    var index = Convert.ToInt32(enumerator.Current) % RandomSet.Count();
+                    int index = Convert.ToInt32(enumerator.Current) % RandomSet.Count();
                     randomString.Append((char)RandomSet[index]);
                 }
 

@@ -120,7 +120,9 @@ namespace Sample.Authentication.Cba.Services
             // Retrieve a "Keyset does not exist" exception here? Make sure the operating Windows-user has access to this certificate (on Local Machine)!
             // Check this in the certificate manager with "All Tasks" / "Manage Private Keys" and give your user Full control.
             string assertion = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
-            Console.WriteLine("Generated assertion:\n" + assertion);  // You van verify this token on https://jwt.io/
+#if DEBUG
+            Console.WriteLine("Generated assertion:\n" + assertion);  // You can verify this token on https://jwt.io/
+#endif
             return assertion;
         }
 

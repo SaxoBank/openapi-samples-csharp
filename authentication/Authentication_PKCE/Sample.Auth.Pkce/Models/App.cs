@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Sample.Auth.Pkce.Models
+﻿namespace Sample.Auth.Pkce.Models
 {
     public class App
     {

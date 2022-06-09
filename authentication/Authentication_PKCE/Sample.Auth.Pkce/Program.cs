@@ -5,11 +5,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace Sample.Auth.Pkce
 {
@@ -19,29 +14,27 @@ namespace Sample.Auth.Pkce
         {
             try
             {
-                var app = GetApp();
-                var authService = new PkceAuthService();
-                var clientService = new ClientService();
+                App app = GetApp();
+                PkceAuthService authService = new PkceAuthService();
+                ClientService clientService = new ClientService();
 
                 // Open Listener for Redirect
-                var listener = BeginListening(app);
+                HttpListener listener = BeginListening(app);
 
                 // Get token and call API
-                Console.WriteLine("Getting Token... ");
-                var token = GoLogin(app, listener);
-                var client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
-                Console.WriteLine("Token: ");
+                Token token = GoLogin(app, listener);
+                dynamic client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
+                Console.WriteLine("Received token object (don't log in your own app):");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = token, Client = client }, Formatting.Indented));
                 Console.WriteLine("================================ ");
 
-                // Refhresh token and call api
+                // Refresh token and call API again
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Refreshing Token... ");
-                var newToken = RefreshToken(app, token.RefreshToken, listener);
+                Token newToken = RefreshToken(app, token.RefreshToken);
                 client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
-                Console.WriteLine("New Token: ");
+                Console.WriteLine("New token object (don't log in your own app):");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = newToken, Client = client }, Formatting.Indented));
-                Console.WriteLine("Demo Done.");
                 Console.WriteLine("================================ ");
             }
             catch (Exception ex)
@@ -54,38 +47,34 @@ namespace Sample.Auth.Pkce
             }
         }
 
-
         private static Token GoLogin(App app, HttpListener listener)
         {
-            var authService = new PkceAuthService();
-            var authUrl = authService.GetAuthenticationRequest(app);
-
+            PkceAuthService authService = new PkceAuthService();
+            string authUrl = authService.GetAuthenticationRequest(app);
+            Console.WriteLine("Loading AuthUrl in browser: " + authUrl);
             System.Diagnostics.Process.Start(authUrl);
 
-            var authCode = GetAuthCode(app, listener);
+            string authCode = GetAuthCode(listener);
             Console.WriteLine($"Auth code {authCode} received.");
 
             // Get Token
             return authService.GetToken(app, authCode);
         }
 
-
-        private static Token RefreshToken(App app, string refreshToken, HttpListener listener)
+        private static Token RefreshToken(App app, string refreshToken)
         {
-            var authService = new PkceAuthService();
+            PkceAuthService authService = new PkceAuthService();
             if (string.IsNullOrEmpty(refreshToken))
                 throw new ArgumentException("Invalid refresh token");
 
-            var token = authService.RefreshToken(app, refreshToken);
-
-            return token;
+            return authService.RefreshToken(app, refreshToken);
         }
 
         private static int GetRandomUnusedPort()
         {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
+            TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
-            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
             listener.Stop();
             return port;
         }
@@ -95,8 +84,8 @@ namespace Sample.Auth.Pkce
             HttpListener listener;
             try
             {
-                var port = GetRandomUnusedPort();
-                var uri = new Uri(app.RedirectUrls[0]);
+                int port = GetRandomUnusedPort();
+                Uri uri = new Uri(app.RedirectUrls[0]);
                 listener = new HttpListener();
                 listener.Prefixes.Add($"{uri.Scheme}://{uri.Host}:{port}/");
                 listener.Start();
@@ -110,17 +99,28 @@ namespace Sample.Auth.Pkce
             }
         }
 
-        private static string GetAuthCode(App app, HttpListener listener)
+        private static string GetAuthCode(HttpListener listener)
         {
             // Listening
             HttpListenerContext httpContext = null;
             try
             {
                 httpContext = listener.GetContext();
-                var authCode = httpContext.Request.QueryString["code"];
-                using (var writer = new StreamWriter(httpContext.Response.OutputStream))
+                string error = httpContext.Request.QueryString["error"];
+                string authCode = httpContext.Request.QueryString["code"];
+                using (StreamWriter writer = new StreamWriter(httpContext.Response.OutputStream))
                 {
-                    writer.WriteLine("AuthCode received by App. Please close the browser.");
+                    if (error != null)
+                    {
+                        string errorDescription = httpContext.Request.QueryString["error_description"];
+                        // Make sure the customer knows something went wrong. A common issue is the account not being active yet, due to the initial deposit.
+                        writer.WriteLine("An error has occurred (" + error + "): " + errorDescription);
+                        throw new Exception(errorDescription);
+                    }
+                    else
+                    {
+                        writer.WriteLine("AuthCode received by App. You can close the browser.");
+                    }
                     writer.Close();
                 }
 
@@ -128,7 +128,7 @@ namespace Sample.Auth.Pkce
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to get the authCode from URL", ex);
+                throw new Exception("Failed to get the authCode from URL: " + ex.Message, ex);
             }
             finally
             {
@@ -139,8 +139,9 @@ namespace Sample.Auth.Pkce
 
         private static App GetApp()
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "App.json");
-            var content = System.IO.File.ReadAllText(path);
+            string path = Path.Combine(AppContext.BaseDirectory, "App.json");
+            Console.WriteLine("Reading app config: " + path);
+            string content = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<App>(content);
         }
     }
