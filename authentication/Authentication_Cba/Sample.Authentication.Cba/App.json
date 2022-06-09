@@ -5,8 +5,9 @@
    */
   "AppKey": "Add your app key",
   "AppSecret": "Add your app secret",
-  // ServiceProviderUrl is the URL you've received from Saxo, when requestion CBA access for your app
+  // ServiceProviderUrl is the URL you've received from Saxo, when requesting CBA access for your app
+  // Be aware that this is not always a valid URL, because it must be unique. It can be something like "Certificate based app_12D0B7C5-E9A1-41B2-B1C7-ECAD6B12345E"
   "ServiceProviderUrl": "Add your unique(!) redirect URL",
   "TokenEndpoint": "https://sim.logonvalidation.net/token",
-  "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi/"
+  "OpenApiBaseUrl": "https://gateway.saxobank.com/sim/openapi"
 }

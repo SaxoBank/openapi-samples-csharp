@@ -24,21 +24,23 @@ namespace Sample.Authentication.Cba.Services
                 throw new InvalidOperationException($"Invalid or unknown Certificate {certificate.ClientCertSerialNumber} - did you import the certificate to the Personal store?");
 
             string assertion = CreateAssertion(app, certificate);
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
-            request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint)
             {
-                { "assertion", assertion },
-                { "grant_type", "urn:saxobank:oauth:grant-type:personal-jwt" }
-            });
-
+                Version = new Version(2, 0),  // Make sure HTTP/2 is used, if available
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "assertion", assertion },
+                    { "grant_type", "urn:saxobank:oauth:grant-type:personal-jwt" }
+                })
+            };
+            request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
             try
             {
                 return Send<Token>(request);
             }
             catch (Exception ex)
             {
-                throw new HttpRequestException($"Error requesting access token: {ex.Message}", ex);
+                throw new HttpRequestException($"Error requesting access token (is the app configured correctly in App.json?):\n{ex.Message}", ex);
             }
         }
 
@@ -59,14 +61,16 @@ namespace Sample.Authentication.Cba.Services
             // To fix this, you must use this app once with the Authorization Code Flow for your userId and accept the Disclaimer after signing in.
             // You can use this URL, replacing the appKey with yours (add a new redirect URL http://127.0.0.1/):
             // https://sim.logonvalidation.net/authorize?client_id=1234b8587cd146249e13dc4ab2f9f806&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%2F
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint);
-            request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, app.TokenEndpoint)
             {
-                { "refresh_token", refreshToken },
-                { "grant_type", "refresh_token" }
-            });
-
+                Version = new Version(2, 0),  // Make sure HTTP/2 is used, if available
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "refresh_token", refreshToken },
+                    { "grant_type", "refresh_token" }
+                })
+            };
+            request.Headers.Authorization = GetBasicAuthHeader(app.AppKey, app.AppSecret);
             try
             {
                 return Send<Token>(request);
@@ -76,7 +80,7 @@ namespace Sample.Authentication.Cba.Services
                 throw new HttpRequestException($"Error requesting access token using refresh token: {refreshToken}\n{ex.Message}", ex);
             }
         }
-        
+                
         /// <summary>
         /// Encoding as the Basic method
         /// </summary>
@@ -105,7 +109,7 @@ namespace Sample.Authentication.Cba.Services
                 // Lifetime of assertion - keep this short, the token is generated directly afterwards:
                 new Claim("exp", (DateTime.UtcNow.AddMinutes(1) - new DateTime(1970, 1, 1)).TotalSeconds.ToString(CultureInfo.InvariantCulture))
             };
-
+            Console.WriteLine("Assertion claims:\n" + string.Join("\n", claims));
             X509SecurityKey key = new X509SecurityKey(certificate.ClientCertificate);
             JwtHeader header = new JwtHeader(new SigningCredentials(key, SecurityAlgorithms.RsaSha256))
             {
@@ -116,7 +120,7 @@ namespace Sample.Authentication.Cba.Services
             // Retrieve a "Keyset does not exist" exception here? Make sure the operating Windows-user has access to this certificate (on Local Machine)!
             // Check this in the certificate manager with "All Tasks" / "Manage Private Keys" and give your user Full control.
             string assertion = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
-            Console.WriteLine("Generated assertion: " + assertion);  // You van verify this token on https://jwt.io/
+            Console.WriteLine("Generated assertion:\n" + assertion);  // You van verify this token on https://jwt.io/
             return assertion;
         }
 

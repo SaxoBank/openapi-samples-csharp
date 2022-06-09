@@ -13,20 +13,22 @@ namespace Sample.Authentication.Cba.Services
         /// <param name="accessToken"></param>
         /// <param name="tokenType"></param>
         /// <returns></returns>
-        protected AuthenticationHeaderValue GetAuthorizationHeader(string accessToken, string tokenType)
+        protected static AuthenticationHeaderValue GetAuthorizationHeader(string accessToken, string tokenType)
         {
             return new AuthenticationHeaderValue(tokenType, accessToken);
         }
         
         /// <summary>
-        /// Send out token request
+        /// Send out token and API requests
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected T Send<T>(HttpRequestMessage request)
+        protected static T Send<T>(HttpRequestMessage request)
         {
             string content = string.Empty;
-
+#if DEBUG
+            Console.WriteLine("Processing request:\n" + request);  // This request contains a token. Only log this for demo and debugging!
+#endif
             try
             {
                 using (HttpClient httpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false }))

@@ -17,10 +17,9 @@ namespace Sample.Authentication.Cba
                 App app = GetApp();
                 Certificate certificate = GetCertificate();
 
-                Console.WriteLine("Getting Token by Certificate... ");
                 Token token = GetToken(app, certificate);
                 dynamic client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
-                Console.WriteLine("Token: ");
+                Console.WriteLine("Received token object (don't log in your own app):");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = token, Client = client }, Formatting.Indented));
                 Console.WriteLine("================================ ");
 
@@ -28,7 +27,7 @@ namespace Sample.Authentication.Cba
                 Console.WriteLine("Refreshing Token... ");
                 Token newToken = RefreshToken(token.RefreshToken);
                 client = new ClientService().GetClient(app.OpenApiBaseUrl, token.AccessToken, token.TokenType);
-                Console.WriteLine("New Token: ");
+                Console.WriteLine("New token object (don't log in your own app):");
                 Console.WriteLine(JsonConvert.SerializeObject(new { Token = newToken, Client = client }, Formatting.Indented));
                 Console.WriteLine("================================ ");          
             }
@@ -72,14 +71,15 @@ namespace Sample.Authentication.Cba
         static App GetApp()
         {
             string path = Path.Combine(AppContext.BaseDirectory, "App.json");
+            Console.WriteLine("Reading app config: " + path);
             string content = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<App>(content);
         }
 
-
         static Certificate GetCertificate()
         {
             string path = Path.Combine(AppContext.BaseDirectory, "Certificate.json");
+            Console.WriteLine("Reading certificate config: " + path);
             string content = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<Certificate>(content);
         }
