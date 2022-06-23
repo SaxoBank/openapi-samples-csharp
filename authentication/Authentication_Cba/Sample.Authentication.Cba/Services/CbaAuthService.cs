@@ -119,6 +119,7 @@ namespace Sample.Authentication.Cba.Services
             JwtSecurityToken jsonWebToken = new JwtSecurityToken(header, new JwtPayload(app.AppKey, app.TokenEndpoint, claims, null, null));
             // Retrieve a "Keyset does not exist" exception here? Make sure the operating Windows-user has access to this certificate (on Local Machine)!
             // Check this in the certificate manager with "All Tasks" / "Manage Private Keys" and give your user Full control.
+            // Alternatively, you can run Visual Studio as Administrator.
             string assertion = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
 #if DEBUG
             Console.WriteLine("Generated assertion:\n" + assertion);  // You can verify this token on https://jwt.io/

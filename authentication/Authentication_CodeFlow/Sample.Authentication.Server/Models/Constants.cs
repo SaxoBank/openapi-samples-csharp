@@ -5,7 +5,7 @@ namespace Sample.Authentication.Server.Models
 {
     public static class Constants
     {
-        private static string state = GetRandomString(8);
+        private static string state = GetRandomString(24);
 
         public static string State { get => state; set => state = value; }
 
@@ -16,7 +16,8 @@ namespace Sample.Authentication.Server.Models
         private static string GetRandomString(int length)
         {
             byte[] bytes = RandomNumberGenerator.GetBytes(length);
-            return Convert.ToBase64String(bytes);
+            // Prevent confusion with "+" vs " ":
+            return Convert.ToBase64String(bytes).Replace("+", "-");
         }
     }
 }

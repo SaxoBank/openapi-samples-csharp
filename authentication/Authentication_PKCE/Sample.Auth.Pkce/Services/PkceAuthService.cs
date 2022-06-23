@@ -22,7 +22,7 @@ namespace Sample.Auth.Pkce.Services
         {
             string authUrl = app.AuthorizationEndpoint;
             string redirectUri = Uri.EscapeDataString(app.RedirectUrls[0]);
-            string state = _randomService.GetRandomString(8);
+            string state = _randomService.GetRandomString(25);
             app.CodeVerifier = _randomService.GetRandomString(43);
             string codeChallengeMethod = "S256";
             string codeChallenge = GetCodeChallenge(app.CodeVerifier);
