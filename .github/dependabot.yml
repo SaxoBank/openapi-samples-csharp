@@ -1,0 +1,21 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/authentication/Authentication_Cba"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/authentication/Authentication_CodeFlow"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/authentication/Authentication_PKCE"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/websockets"
+    schedule:
+      interval: "weekly"
