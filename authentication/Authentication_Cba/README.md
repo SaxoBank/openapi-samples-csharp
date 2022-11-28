@@ -1,18 +1,18 @@
-# Certificate Based Authentication Sample
-This sample demonstrates how to implement certificate based authentication.
+# Certificate-Based Authentication Sample
+This example shows how certificate-based authentication can be implemented.
 
->Certificate based authentication is only available to select institutional clients, upon request!
+>Certificate-based authentication is only available for certain institutional clients, upon request!
 
-A description of this flow is provided here: [Certificate Based Authentication guide](https://developer.saxobank.com/openapi/learn/oauth-certificate-based-authentication).
+A description of this flow is provided here: [Certificate-Based Authentication guide](https://developer.saxobank.com/openapi/learn/oauth-certificate-based-authentication).
 
 The sample application is a simple .NET Core console application.
 
 To get it running you need two pieces of information:
-* Application configuration settings
-* A userId and matching certificate for the user to be authenticated.
+* Settings for the application configuration.
+* A UserId and corresponding certificate for the user to be authenticated.
 
 ## Getting the application configuration settings
-Applications which can perform certificate based authentication can only be created by Saxo Bank.
+Applications that can perform certificate-based authentication can only be created by Saxo Bank.
 
 You will receive the following information
 
@@ -23,14 +23,14 @@ You will receive the following information
 |AppSecret|The application secret. Equivalent of the OAuth client_secret|962d5c529166401db837e9c5c4cxxxxx|
 
 ## Getting a user certificate
-You must also have login details for the user, who is supposed be authenticated. Further, this user must have been configured to be able to download a certificate, representing this user.
+You must also have login credentials for the user to be authenticated. Furthermore, this user must have been configured to be able to download a certificate, representing this user.
 
 Saxo Bank will inform you, once the user has been configured for certificate management.
 
-At that point you must follow the procedure outlined here to download a certificate [Managing Certificates in MyAccount] (https://developer.saxobank.com/openapi/learn/managing-certificates-in-myaccount).
+At that point you must follow the procedure described here to download a certificate [Managing Certificates in MyAccount] (https://developer.saxobank.com/openapi/learn/managing-certificates-in-myaccount).
 
 ## Installing the certificate
-You must now install the certificate on the machine. Double-click the certificate file.
+You now need to install the certificate on the machine. Double-click on the certificate file.
 ![Certificate Import Wizard - Local Machine](./InstallCert1.png)
 
 Select the certificate.
@@ -52,7 +52,7 @@ Complete the import
 ![Import complete](./InstallCert6.png)
 
 ## Verify that the certificate is installed correctly
-After installation, you can verify that the certificate is available in the Certificate Manager of the Local Computer.
+After installation, you can check if the certificate is available in the Certificate Manager of the Local Computer.
 
 ![Certificate store](./InstallCert7.png)
 
@@ -66,12 +66,12 @@ Settings for the certificate is placed in the Certificate.json file.
 ![Certificate settings](./VisualStudio2.png)
 
 ## Run the application
-The application is now fully configured. However, since the application needs to fetch the certificate from the certificate store, you might run Visual Studio with administrative privilges.
+The application is now fully configured. But because the application must retrieve the certificate from the certificate store, you might need to run Visual Studio with administrator privileges (depending on the version).
 
 Make sure Visual Studio is run as administrator (see below). If not, exit Visual Studio and restart it with "Run as administrator".
 ![Run as admin](./VisualStudio3.png)
 
 ### Now press F5.
-You should now see the application automatically logging in, fetching an access token and returning client details.
+You should now see the application automatically log in, retrieve an access token and return client data.
 
 ![Result](./ClientDetails.png)
