@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SAXO")]
 [assembly: AssemblyProduct("Streaming.WebSocket.Samples")]
-[assembly: AssemblyCopyright("Copyright © SAXO 2021")]
+[assembly: AssemblyCopyright("Copyright © SAXO 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
