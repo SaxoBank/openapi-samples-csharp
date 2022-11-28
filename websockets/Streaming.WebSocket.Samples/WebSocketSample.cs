@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -112,7 +111,7 @@ namespace Streaming.WebSocket.Samples
         {
             //A valid OAuth2 _token - get a 24-hour token here: https://www.developer.saxo/openapi/token/current
             _token = "######";
-           
+
             //Url for streaming server.
             _webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
 
@@ -267,7 +266,17 @@ namespace Streaming.WebSocket.Samples
                 Arguments = new
                 {
                     AssetType = "FxSpot",
-                    Uic = 21
+                    Uic = 21,
+                    RequireTradableQuotes = true,
+                    FieldGroups = new [] { 
+                        "DisplayAndFormat", 
+                        "InstrumentPriceDetails", 
+                        "MarketDepth", 
+                        "PriceInfo", 
+                        "PriceInfoDetails", 
+                        "Quote", 
+                        "Timestamps" 
+                    }
                 }
             };
 
