@@ -73,7 +73,7 @@ namespace Streaming.WebSocket.Samples
     ///    So once you have refreshed your token, you will have to let the server know that you have a new and valid token. Otherwise the server will disconnect
     ///    the streaming connection once the initial token expires.
     ///    Doing this is quite simple. You need to get a new access token from our OAuth2 server and then execute a PUT request with a correct Authorization
-    ///    header and a context id in the querystring (/streamingws/authorize?contextid=abc123).
+    ///    header and a context id in the querystring (oapi/streaming/ws/authorize?contextid=abc123).
     ///    The server will return a 202 Accepted status code if the new access token is valid.
     ///    It will return 202 even if the context ids do not match any current connections.
     ///
@@ -113,10 +113,10 @@ namespace Streaming.WebSocket.Samples
             _token = "######";
 
             //Url for streaming server.
-            _webSocketConnectionUrl = "wss://streaming.saxobank.com/sim/openapi/streamingws/connect";
+            _webSocketConnectionUrl = "wss://sim-streaming.saxobank.com/sim/oapi/streaming/ws/connect";
 
             //Url for streaming server.
-            _webSocketAuthorizationUrl = "https://streaming.saxobank.com/sim/openapi/streamingws/authorize";
+            _webSocketAuthorizationUrl = "https://sim-streaming.saxobank.com/sim/oapi/streaming/ws/authorize";
 
             //Url for creating price subscription.
             _priceSubscriptionUrl = "https://gateway.saxobank.com/sim/openapi/trade/v1/prices/subscriptions";
